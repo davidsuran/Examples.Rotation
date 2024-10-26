@@ -27,7 +27,6 @@ namespace Examples.Rotation
         /// </summary>
         protected override void Initialize()
         {
-
             _rotationMatrix = Matrix.Identity;
             _rotationMatrix = Matrix.CreateFromAxisAngle(_rotationMatrix.Forward, MathHelper.ToRadians(115.0f));
 
