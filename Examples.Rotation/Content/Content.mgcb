@@ -32,3 +32,10 @@
 /processorParam:TextureFormat=Compressed
 /build:box.fbx
 
+#begin baseFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:baseFont.spritefont;baseFont.spritefont
+

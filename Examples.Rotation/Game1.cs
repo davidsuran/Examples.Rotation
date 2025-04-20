@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using CameraControllerDemo;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vector3Struct = Microsoft.Xna.Framework.Vector3;
+using Vector3 = CameraControllerDemo.Vector3;
 
 namespace Examples.Rotation
 {
@@ -12,6 +14,7 @@ namespace Examples.Rotation
         private ModelModel _model;
         private ModelModel _modelRotateAround;
         private Camera _camera;
+        private SpriteBatch _spriteBatch;
 
         private Matrix _projectionMatrix;
         private Matrix _viewMatrix;
@@ -20,7 +23,7 @@ namespace Examples.Rotation
         private BasicEffect _basicEffect;
 
         private bool _orbit;
-        
+        private SpriteFont _spriteFont;
         const float ROTATE_DEGREE = 4.0f;
 
         /// <summary>
@@ -72,6 +75,8 @@ namespace Examples.Rotation
             _basicEffect.Alpha = 1.0f;
             _basicEffect.VertexColorEnabled = true;
             _basicEffect.LightingEnabled = false;
+
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
         /// <summary>
@@ -82,6 +87,7 @@ namespace Examples.Rotation
             _model = new ModelModel(Content.Load<Model>("box"));
             //_model.RotationMatrix = Matrix.CreateFromAxisAngle(_rotationMatrix.Forward, MathHelper.ToRadians(115.0f));
             _modelRotateAround = new ModelModel(Content.Load<Model>("box"), new Vector3(0, 6, 0));
+            _spriteFont = Content.Load<SpriteFont>("baseFont");
         }
 
         /// <summary>
@@ -206,7 +212,11 @@ namespace Examples.Rotation
                 GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, vertexBuffer.VertexCount);
 
             }
-            
+
+            _spriteBatch.Begin();
+            _spriteBatch.DrawString(_spriteFont, "hello, world!", new Vector2(100, 100), Color.Blue);
+            _spriteBatch.End();
+
             base.Draw(gameTime);
         }
 
@@ -268,80 +278,13 @@ namespace Examples.Rotation
         private VertexBuffer MakeVertexBuffer()
         {
             List<VertexPositionColor> triangleVertices = new List<VertexPositionColor>();
-            triangleVertices.AddRange(MakeFloor());
-            triangleVertices.AddRange(MakeBox());
-            triangleVertices.AddRange(MakeCameraTarget(_camera.Target));
+            triangleVertices.AddRange(Primitives.MakeFloor());
+            triangleVertices.AddRange(Primitives.MakeBox());
+            triangleVertices.AddRange(Primitives.MakeCameraTarget(_camera.Target));
 
             VertexBuffer vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), triangleVertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData<VertexPositionColor>(triangleVertices.ToArray());
             return vertexBuffer;
-        }
-
-        private IEnumerable<VertexPositionColor> MakeFloor()
-        {
-            yield return MakeVertex(0, 0, 300, Color.Red);
-            yield return MakeVertex(0, 0, 0, Color.Green);
-            yield return MakeVertex(300, 0, 0, Color.Blue);
-
-            yield return MakeVertex(300, 0, 0, Color.Yellow);
-            yield return MakeVertex(0, 0, 0, Color.Wheat);
-            yield return MakeVertex(0, 0, -300, Color.WhiteSmoke);
-
-            yield return MakeVertex(0, 0, -300, Color.Orange);
-            yield return MakeVertex(0, 0, 0, Color.Orchid);
-            yield return MakeVertex(-300, 0, 0, Color.Olive);
-
-            yield return MakeVertex(-300, 0, 0, Color.Salmon);
-            yield return MakeVertex(0, 0, 0, Color.Sienna);
-            yield return MakeVertex(0, 0, 300, Color.Aqua);
-        }
-
-        private IEnumerable<VertexPositionColor> MakeBox()
-        {
-            // Front back
-            yield return MakeVertex(-30, 0, -30);
-            yield return MakeVertex(30, 0, -30);
-            yield return MakeVertex(30, 60, -30);
-
-            yield return MakeVertex(-30, 60, -30);
-            yield return MakeVertex(30, 60, -30);
-            yield return MakeVertex(-30, 0, -30);
-
-            // Box back
-            yield return MakeVertex(-30, 0, 30);
-            yield return MakeVertex(30, 0, 30);
-            yield return MakeVertex(30, 60, 30);
-
-            yield return MakeVertex(-30, 60, 30);
-            yield return MakeVertex(30, 60, 30);
-            yield return MakeVertex(-30, 0, 30);
-        }
-
-        private IEnumerable<VertexPositionColor> MakeCameraTarget(Vector3 cameraTarget)
-        {
-            float height = 600f;
-            // Front back
-            yield return MakeVertex(cameraTarget.X - 10, -height, cameraTarget.Z, Color.Red);
-            yield return MakeVertex(cameraTarget.X + 10, -height, cameraTarget.Z, Color.Red);
-            yield return MakeVertex(cameraTarget.X + 10, height, cameraTarget.Z, Color.Red);
-
-            yield return MakeVertex(cameraTarget.X - 10, height, cameraTarget.Z, Color.Red);
-            yield return MakeVertex(cameraTarget.X + 10, height, cameraTarget.Z, Color.Red);
-            yield return MakeVertex(cameraTarget.X - 10, -height, cameraTarget.Z, Color.Red);
-
-            // Box back
-            yield return MakeVertex(cameraTarget.X, -height, cameraTarget.Z + 10, Color.BlueViolet);
-            yield return MakeVertex(cameraTarget.X, -height, cameraTarget.Z - 10, Color.BlueViolet);
-            yield return MakeVertex(cameraTarget.X, height, cameraTarget.Z - 10, Color.BlueViolet);
-
-            yield return MakeVertex(cameraTarget.X, height, cameraTarget.Z - 10, Color.BlueViolet);
-            yield return MakeVertex(cameraTarget.X, height, cameraTarget.Z + 10, Color.BlueViolet);
-            yield return MakeVertex(cameraTarget.X, -height, cameraTarget.Z + 10, Color.BlueViolet);
-        }
-
-        private VertexPositionColor MakeVertex(float x, float y, float z, Color? color = null)
-        {
-            return new VertexPositionColor(new Vector3(x, y, z), color.HasValue ? color.Value : Color.Gray);
         }
 
         internal class ModelModel
@@ -379,50 +322,5 @@ namespace Examples.Rotation
             }
         }
 
-        internal class Vector3
-        {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float Z { get; set; }
-
-            public Microsoft.Xna.Framework.Vector3 Struct => new Microsoft.Xna.Framework.Vector3(X, Y, Z);
-
-            public static Microsoft.Xna.Framework.Vector3 Forward => Microsoft.Xna.Framework.Vector3.Forward;
-
-            //public static Vector3Struct Zero => Vector3Struct.Zero;
-
-            public static Microsoft.Xna.Framework.Vector3 Up => Microsoft.Xna.Framework.Vector3.Up;
-
-            public static Vector3 Zero => new Vector3(0f, 0f, 0f);
-
-            public static Microsoft.Xna.Framework.Vector3 UnitZ => Microsoft.Xna.Framework.Vector3.UnitZ;
-
-
-            public static implicit operator Microsoft.Xna.Framework.Vector3(Vector3 v)
-            {
-                return v.Struct;
-            }
-
-            public static explicit operator Vector3(Microsoft.Xna.Framework.Vector3 v)
-            {
-                return new Vector3(v);
-            }
-
-            public Vector3(Microsoft.Xna.Framework.Vector3 vector3) : this(vector3.X, vector3.Y, vector3.Z)
-            {
-            }
-
-            public Vector3(float x, float y, float z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-
-            internal static Vector3 Transform(Vector3 position, Matrix rotationMatrix)
-            {
-                return (Vector3)Microsoft.Xna.Framework.Vector3.Transform(position.Struct, rotationMatrix);
-            }
-        }
     }
 }
