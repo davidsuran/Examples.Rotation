@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vector3Struct = Microsoft.Xna.Framework.Vector3;
 using Vector3 = CameraControllerDemo.Vector3;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using System;
 
 namespace Examples.Rotation
 {
@@ -151,8 +153,37 @@ namespace Examples.Rotation
                 if (_orbit)
                 {
                     Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
-                    _camera.Position = Vector3.Transform(_camera.Position, rotationMatrix);
+                    //_camera.Position = Vector3.Transform(_camera.Position, rotationMatrix);
 
+                    //Vector3 pos = _camera.Position;
+                    //Vector3 dir = (_camera.Position - _camera.Target);
+                    //dir.Normalize();
+                    //float distance = Vector3.Distance(_camera.Position, _camera.Target);
+
+
+                    //Matrix translationMatrix;
+                    //if (distance > 200f)
+                    //{
+                    //    //pos = pos + (dir * -1f);
+                    //    translationMatrix = Matrix.CreateTranslation(_camera.Position * -1f);
+
+                    //}
+                    //else
+                    //{
+                    //    translationMatrix = Matrix.CreateTranslation(_camera.Position * 1f);
+                    //    //pos = pos + (dir * +1f);
+                    //}
+
+                    // https://stackoverflow.com/questions/42281226/rotation-matrix-causing-sprite-position-to-change
+                    //A rotation matrix rotates around 0,0 and your rectangle is already placed in the world.
+                    //To solve first subtract the rectangle's center from each vertex (translate the rectangle to be centered at 0,0)
+                    //and then add it again after rotating (place again on original location). In the code im assuming Y goes from top to bottom:
+
+                    //objectPosition = Vector3.Transform(ObjectPosition - objectToRotateAboutPosition, Matrix.CreateRotationX(angle)) + objectToRotateAboutPosition;
+                    //https://gamedev.stackexchange.com/questions/51737/how-to-rotate-one-object-around-another-moving-object-in-3-d
+                    //_camera.Position = Vector3.Transform(pos, rotationMatrix);
+                    _camera.Position = Vector3.Transform(_camera.Position - _camera.Target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + _camera.Target;
+                    //_camera.Position = Vector3.Transform(MultiplyMatrix4ByVector3(translationMatrix, _camera.Position), rotationMatrix);
                 }
 
                 _viewMatrix = Matrix.CreateLookAt(_camera.Position, _camera.Target, Vector3.Up);
@@ -170,6 +201,14 @@ namespace Examples.Rotation
             }
 
             base.Update(gameTime);
+        }
+
+        private Vector3 MultiplyMatrix4ByVector3(Matrix matrix4, Vector3 vector3)
+        {
+            return new Vector3(
+                (matrix4[0, 0] * vector3.X) + (matrix4[0, 1] * vector3.Y) + (matrix4[0, 2] * vector3.Z) + matrix4[0, 3],
+                (matrix4[1, 0] * vector3.X) + (matrix4[1, 1] * vector3.Y) + (matrix4[1, 2] * vector3.Z) + matrix4[1, 3],
+                (matrix4[2, 0] * vector3.X) + (matrix4[2, 1] * vector3.Y) + (matrix4[2, 2] * vector3.Z) + matrix4[2, 3]);
         }
 
         /// <summary>
@@ -210,11 +249,13 @@ namespace Examples.Rotation
             {
                 pass.Apply();
                 GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, vertexBuffer.VertexCount);
-
             }
 
             _spriteBatch.Begin();
-            _spriteBatch.DrawString(_spriteFont, "hello, world!", new Vector2(100, 100), Color.Blue);
+            _spriteBatch.DrawString(_spriteFont, $"Camera z: {_camera.Position.Z}", new Vector2(50, 100), Color.Blue);
+            _spriteBatch.DrawString(_spriteFont, $"Camera x: {_camera.Position.X}", new Vector2(50, 130), Color.Black);
+            _spriteBatch.DrawString(_spriteFont, $"_viewMatrix: {_viewMatrix.Up} {_viewMatrix.Right} {_viewMatrix.Forward}", new Vector2(50, 160), Color.BlanchedAlmond);
+
             _spriteBatch.End();
 
             base.Draw(gameTime);
@@ -286,6 +327,73 @@ namespace Examples.Rotation
             vertexBuffer.SetData<VertexPositionColor>(triangleVertices.ToArray());
             return vertexBuffer;
         }
+        
+        public static Quaternion MyLookRotation(Vector3 lookAt, Vector3 upDirection)
+        {
+            Vector3 forward = lookAt;
+            Vector3 up = upDirection;
+
+            forward = forward.Normalized();
+            up = up - (forward * Vector3.Dot(up, forward));
+            up = up.Normalized();
+
+            ///////////////////////
+
+            Vector3 vector = forward.Normalized();
+            Vector3 vector2 = Vector3.Cross(up, vector);
+            Vector3 vector3 = Vector3.Cross(vector, vector2);
+            float m00 = vector2.X;
+            float m01 = vector2.Y;
+            float m02 = vector2.Z;
+            float m10 = vector3.X;
+            float m11 = vector3.Y;
+            float m12 = vector3.Z;
+            float m20 = vector.X;
+            float m21 = vector.Y;
+            float m22 = vector.Z;
+
+            float num8 = (m00 + m11) + m22;
+            Quaternion quaternion = new Quaternion();
+            if (num8 > 0.0f)
+            {
+                float num = MathF.Sqrt(num8 + 1.0f);
+                quaternion.W = num * 0.5f;
+                num = 0.5f / num;
+                quaternion.X = (m12 - m21) * num;
+                quaternion.Y = (m20 - m02) * num;
+                quaternion.Z = (m01 - m10) * num;
+
+                return quaternion;
+            }
+            if ((m00 >= m11) && (m00 >= m22))
+            {
+                float num7 = MathF.Sqrt(((1.0f + m00) - m11) - m22);
+                float num4 = 0.5f / num7;
+                quaternion.X = 0.5f * num7;
+                quaternion.Y = (m01 + m10) * num4;
+                quaternion.Z = (m02 + m20) * num4;
+                quaternion.W = (m12 - m21) * num4;
+                return quaternion;
+            }
+            if (m11 > m22)
+            {
+                float num6 = (float)MathF.Sqrt(((1.0f + m11) - m00) - m22);
+                float num3 = 0.5f / num6;
+                quaternion.X = (m10 + m01) * num3;
+                quaternion.Y = 0.5f * num6;
+                quaternion.Z = (m21 + m12) * num3;
+                quaternion.W = (m20 - m02) * num3;
+                return quaternion;
+            }
+            float num5 = (float)MathF.Sqrt(((1.0f + m22) - m00) - m11);
+            float num2 = 0.5f / num5;
+            quaternion.X = (m20 + m02) * num2;
+            quaternion.Y = (m21 + m12) * num2;
+            quaternion.Z = 0.5f * num5;
+            quaternion.W = (m01 - m10) * num2;
+
+            return quaternion;
+        }
 
         internal class ModelModel
         {
@@ -307,20 +415,5 @@ namespace Examples.Rotation
             {
             }
         }
-
-        internal class Camera
-        {
-            public Vector3 Position { get; set; }
-            public Vector3 Target { get; set; }
-            public Matrix CameraRotationMatrix { get; set; }
-
-            public Camera(Vector3 position, Vector3 target)
-            {
-                Position = position;
-                Target = target;
-                CameraRotationMatrix = Matrix.Identity;
-            }
-        }
-
     }
 }
