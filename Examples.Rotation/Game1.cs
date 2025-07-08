@@ -14,9 +14,9 @@ namespace Examples.Rotation
     {
         private GraphicsDeviceManager _graphics;
         private ModelModel _model;
-        private ModelModel _modelRotateAround;
-        private Camera _camera;
         private SpriteBatch _spriteBatch;
+
+        private CameraController _cameraController;
 
         private Matrix _projectionMatrix;
         private Matrix _viewMatrix;
@@ -45,8 +45,9 @@ namespace Examples.Rotation
         {
             base.Initialize();
 
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             //_camera = new Camera(new Vector3(0, 16, 4), new Vector3(0, 0, 0));
-            _camera = new Camera(new Vector3(0f, 0f, -100f), new Vector3(0f, 0f, 0f));
+            _cameraController = new CameraController(new Vector3(0f, 0f, -100f), new Vector3(0f, 0f, 0f));
             float aspectRatio = GraphicsDevice.DisplayMode.AspectRatio;//16f / 9f;
 
             //_projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
@@ -66,12 +67,8 @@ namespace Examples.Rotation
             //    cameraTarget: _camera.Target,
             //    Vector3.UnitZ);
 
-            _viewMatrix = Matrix.CreateLookAt(
-                cameraPosition: _camera.Position,
-                cameraTarget: _camera.Target,
-                new Vector3(0f, 1f, 0f));
-
-            _worldMatrix = Matrix.CreateWorld(_camera.Target, Vector3.Forward, Vector3.Up);
+            _viewMatrix = _cameraController.GetViewMatrix();
+            _worldMatrix = _cameraController.GetWorldMatrix();
 
             _basicEffect = new BasicEffect(GraphicsDevice);
             _basicEffect.Alpha = 1.0f;
@@ -88,7 +85,6 @@ namespace Examples.Rotation
         {
             _model = new ModelModel(Content.Load<Model>("box"));
             //_model.RotationMatrix = Matrix.CreateFromAxisAngle(_rotationMatrix.Forward, MathHelper.ToRadians(115.0f));
-            _modelRotateAround = new ModelModel(Content.Load<Model>("box"), new Vector3(0, 6, 0));
             _spriteFont = Content.Load<SpriteFont>("baseFont");
         }
 
@@ -98,18 +94,19 @@ namespace Examples.Rotation
         /// <param name="gameTime">The game time.</param>
         protected override void Update(GameTime gameTime)
         {
-            InputManager.Update();
+            InputController.Instance.Update(gameTime);
+            _cameraController.Update(gameTime);
 
             int w = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width; //whole screen
             int h = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             var r = GraphicsDevice.PresentationParameters.Bounds;
 
             Rectangle rect = new Rectangle(0, 0, r.Width, r.Height);
-            if (InputManager.Hover(rect) || true)
+            if (InputController.Hover(rect) || true)
             {
-                Vector2 normalizedMouseCursor = InputManager.LastMouseCoordsNormalized(rect);
+                Vector2 normalizedMouseCursor = InputController.LastMouseCoordsNormalized(rect);
 
-                if (InputManager.LeftClicked)
+                if (InputController.LeftClicked)
                 {
                     //Exit();
                 }
@@ -117,76 +114,76 @@ namespace Examples.Rotation
                 //Vector3 difference = _camera.Position - _camera.Target;
                 //_camera.CameraRotationMatrix *= Matrix.CreateFromAxisAngle(_camera.Target, MathHelper.ToRadians(1.0f));
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Left))
-                {
-                    _camera.Position.X -= 1f;
-                    _camera.Target.X -= 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Right))
-                {
-                    _camera.Position.X += 1f;
-                    _camera.Target.X += 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                {
-                    _camera.Position.Y -= 1f;
-                    _camera.Target.Y -= 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                {
-                    _camera.Position.Y += 1f;
-                    _camera.Target.Y += 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.OemPlus))
-                {
-                    _camera.Position.Z += 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.OemMinus))
-                {
-                    _camera.Position.Z -= 1f;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                {
-                    _orbit = !_orbit;
-                }
+                //if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                //{
+                //    _camera.Position.X -= 1f;
+                //    _camera.Target.X -= 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                //{
+                //    _camera.Position.X += 1f;
+                //    _camera.Target.X += 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                //{
+                //    _camera.Position.Y -= 1f;
+                //    _camera.Target.Y -= 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                //{
+                //    _camera.Position.Y += 1f;
+                //    _camera.Target.Y += 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.OemPlus))
+                //{
+                //    _camera.Position.Z += 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.OemMinus))
+                //{
+                //    _camera.Position.Z -= 1f;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                //{
+                //    _orbit = !_orbit;
+                //}
 
-                if (_orbit)
-                {
-                    Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
-                    //_camera.Position = Vector3.Transform(_camera.Position, rotationMatrix);
+                //if (_orbit)
+                //{
+                //    //Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
+                //    ////_camera.Position = Vector3.Transform(_camera.Position, rotationMatrix);
 
-                    //Vector3 pos = _camera.Position;
-                    //Vector3 dir = (_camera.Position - _camera.Target);
-                    //dir.Normalize();
-                    //float distance = Vector3.Distance(_camera.Position, _camera.Target);
+                //    ////Vector3 pos = _camera.Position;
+                //    ////Vector3 dir = (_camera.Position - _camera.Target);
+                //    ////dir.Normalize();
+                //    ////float distance = Vector3.Distance(_camera.Position, _camera.Target);
 
 
-                    //Matrix translationMatrix;
-                    //if (distance > 200f)
-                    //{
-                    //    //pos = pos + (dir * -1f);
-                    //    translationMatrix = Matrix.CreateTranslation(_camera.Position * -1f);
+                //    ////Matrix translationMatrix;
+                //    ////if (distance > 200f)
+                //    ////{
+                //    ////    //pos = pos + (dir * -1f);
+                //    ////    translationMatrix = Matrix.CreateTranslation(_camera.Position * -1f);
 
-                    //}
-                    //else
-                    //{
-                    //    translationMatrix = Matrix.CreateTranslation(_camera.Position * 1f);
-                    //    //pos = pos + (dir * +1f);
-                    //}
+                //    ////}
+                //    ////else
+                //    ////{
+                //    ////    translationMatrix = Matrix.CreateTranslation(_camera.Position * 1f);
+                //    ////    //pos = pos + (dir * +1f);
+                //    ////}
 
-                    // https://stackoverflow.com/questions/42281226/rotation-matrix-causing-sprite-position-to-change
-                    //A rotation matrix rotates around 0,0 and your rectangle is already placed in the world.
-                    //To solve first subtract the rectangle's center from each vertex (translate the rectangle to be centered at 0,0)
-                    //and then add it again after rotating (place again on original location). In the code im assuming Y goes from top to bottom:
+                //    //// https://stackoverflow.com/questions/42281226/rotation-matrix-causing-sprite-position-to-change
+                //    ////A rotation matrix rotates around 0,0 and your rectangle is already placed in the world.
+                //    ////To solve first subtract the rectangle's center from each vertex (translate the rectangle to be centered at 0,0)
+                //    ////and then add it again after rotating (place again on original location). In the code im assuming Y goes from top to bottom:
 
-                    //objectPosition = Vector3.Transform(ObjectPosition - objectToRotateAboutPosition, Matrix.CreateRotationX(angle)) + objectToRotateAboutPosition;
-                    //https://gamedev.stackexchange.com/questions/51737/how-to-rotate-one-object-around-another-moving-object-in-3-d
-                    //_camera.Position = Vector3.Transform(pos, rotationMatrix);
-                    _camera.Position = Vector3.Transform(_camera.Position - _camera.Target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + _camera.Target;
-                    //_camera.Position = Vector3.Transform(MultiplyMatrix4ByVector3(translationMatrix, _camera.Position), rotationMatrix);
-                }
+                //    ////objectPosition = Vector3.Transform(ObjectPosition - objectToRotateAboutPosition, Matrix.CreateRotationX(angle)) + objectToRotateAboutPosition;
+                //    ////https://gamedev.stackexchange.com/questions/51737/how-to-rotate-one-object-around-another-moving-object-in-3-d
+                //    //_camera.Position = Vector3.Transform(_camera.Position - _camera.Target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + _camera.Target;
 
-                _viewMatrix = Matrix.CreateLookAt(_camera.Position, _camera.Target, Vector3.Up);
+                //    _cameraController.Orbit();
+                //}
+
+                _viewMatrix = _cameraController.GetViewMatrix();
             }
             else
             {
@@ -238,6 +235,7 @@ namespace Examples.Rotation
             _basicEffect.World = _worldMatrix;
 
             GraphicsDevice.Clear(Color.Coral);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             VertexBuffer vertexBuffer = MakeVertexBuffer();
             GraphicsDevice.SetVertexBuffer(vertexBuffer);
 
@@ -252,8 +250,8 @@ namespace Examples.Rotation
             }
 
             _spriteBatch.Begin();
-            _spriteBatch.DrawString(_spriteFont, $"Camera z: {_camera.Position.Z}", new Vector2(50, 100), Color.Blue);
-            _spriteBatch.DrawString(_spriteFont, $"Camera x: {_camera.Position.X}", new Vector2(50, 130), Color.Black);
+            //_spriteBatch.DrawString(_spriteFont, $"Camera z: {_camera.Position.Z}", new Vector2(50, 100), Color.Blue);
+            //_spriteBatch.DrawString(_spriteFont, $"Camera x: {_camera.Position.X}", new Vector2(50, 130), Color.Black);
             _spriteBatch.DrawString(_spriteFont, $"_viewMatrix: {_viewMatrix.Up} {_viewMatrix.Right} {_viewMatrix.Forward}", new Vector2(50, 160), Color.BlanchedAlmond);
 
             _spriteBatch.End();
@@ -288,10 +286,10 @@ namespace Examples.Rotation
                     effect.World = model.WorldMatrix;
                     effect.EnableDefaultLighting();
                     effect.PreferPerPixelLighting = true;
-                    effect.View = Matrix.CreateLookAt(
-                        cameraPosition: _camera.Position,
-                        cameraTarget: _camera.Target,
-                        Vector3.UnitZ);
+                    //effect.View = Matrix.CreateLookAt(
+                    //    cameraPosition: _camera.Position,
+                    //    cameraTarget: _camera.Target,
+                    //    Vector3.UnitZ);
                     effect.Projection = _projectionMatrix;
 
                     for (int i = 0; i < effect.CurrentTechnique.Passes.Count; i++)
@@ -321,7 +319,7 @@ namespace Examples.Rotation
             List<VertexPositionColor> triangleVertices = new List<VertexPositionColor>();
             triangleVertices.AddRange(Primitives.MakeFloor());
             triangleVertices.AddRange(Primitives.MakeBox());
-            triangleVertices.AddRange(Primitives.MakeCameraTarget(_camera.Target));
+            triangleVertices.AddRange(Primitives.MakeCameraTarget(_cameraController.Target));
 
             VertexBuffer vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), triangleVertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData<VertexPositionColor>(triangleVertices.ToArray());

@@ -12,21 +12,21 @@ namespace CameraControllerDemo
         /// <returns></returns>
         public static IEnumerable<VertexPositionColor> MakeFloor()
         {
-            yield return MakeVertex(0, 0, 300, Color.Red);
-            yield return MakeVertex(0, 0, 0, Color.Green);
-            yield return MakeVertex(300, 0, 0, Color.Blue);
+            yield return MakeVertex(0, 0, 300, Color.Black);
+            yield return MakeVertex(0, 0, 0, Color.Black);
+            yield return MakeVertex(300, 0, 0, Color.Black);
 
-            yield return MakeVertex(300, 0, 0, Color.Yellow);
-            yield return MakeVertex(0, 0, 0, Color.Wheat);
-            yield return MakeVertex(0, 0, -300, Color.WhiteSmoke);
+            yield return MakeVertex(300, 0, 0, Color.White);
+            yield return MakeVertex(0, 0, 0, Color.White);
+            yield return MakeVertex(0, 0, -300, Color.White);
 
-            yield return MakeVertex(0, 0, -300, Color.Orange);
-            yield return MakeVertex(0, 0, 0, Color.Orchid);
-            yield return MakeVertex(-300, 0, 0, Color.Olive);
+            yield return MakeVertex(0, 0, -300, Color.Black);
+            yield return MakeVertex(0, 0, 0, Color.Black);
+            yield return MakeVertex(-300, 0, 0, Color.Black);
 
-            yield return MakeVertex(-300, 0, 0, Color.Salmon);
-            yield return MakeVertex(0, 0, 0, Color.Sienna);
-            yield return MakeVertex(0, 0, 300, Color.Aqua);
+            yield return MakeVertex(-300, 0, 0, Color.White);
+            yield return MakeVertex(0, 0, 0, Color.White);
+            yield return MakeVertex(0, 0, 300, Color.White);
         }
 
         /// <summary>
@@ -52,6 +52,15 @@ namespace CameraControllerDemo
             yield return MakeVertex(-30, 60, 30);
             yield return MakeVertex(30, 60, 30);
             yield return MakeVertex(-30, 0, 30);
+
+            // Box top
+            yield return MakeVertex(-30, 60, -30, Color.DarkGray);
+            yield return MakeVertex(30, 60, -30, Color.DarkGray);
+            yield return MakeVertex(30, 60, 30, Color.DarkGray);
+
+            yield return MakeVertex(-30, 60, 30, Color.DarkGray);
+            yield return MakeVertex(30, 60, 30, Color.DarkGray);
+            yield return MakeVertex(-30, 60, -30, Color.DarkGray);
         }
 
         /// <summary>

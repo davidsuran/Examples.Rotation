@@ -108,6 +108,11 @@ namespace CameraControllerDemo
             result = value1.X * value2.X + value1.Y * value2.Y + value1.Z * value2.Z;
         }
 
+        public static Vector3 Lerp(Vector3 start, Vector3 end, float time0to1)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string ToString()
         {
             return base.ToString(); 
