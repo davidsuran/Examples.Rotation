@@ -32,35 +32,41 @@ namespace CameraControllerDemo
         /// <summary>
         /// Makes the box.
         /// </summary>
+        /// <param name="color">The color.</param>
         /// <returns></returns>
-        public static IEnumerable<VertexPositionColor> MakeBox()
+        public static IEnumerable<VertexPositionColor> MakeBox(Vector3 position = null, Color? color = null)
         {
-            // Front back
-            yield return MakeVertex(-30, 0, -30);
-            yield return MakeVertex(30, 0, -30);
-            yield return MakeVertex(30, 60, -30);
+            if (position == null)
+            {
+                position = Vector3.Zero;
+            }
 
-            yield return MakeVertex(-30, 60, -30);
-            yield return MakeVertex(30, 60, -30);
-            yield return MakeVertex(-30, 0, -30);
+            // Front back
+            yield return MakeVertex(-30 + position.X, 0 + position.Y, -30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 0 + position.Y, -30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, -30 + position.Z, color);
+
+            yield return MakeVertex(-30 + position.X, 60 + position.Y, -30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, -30 + position.Z, color);
+            yield return MakeVertex(-30 + position.X, 0 + position.Y, -30 + position.Z, color);
 
             // Box back
-            yield return MakeVertex(-30, 0, 30);
-            yield return MakeVertex(30, 0, 30);
-            yield return MakeVertex(30, 60, 30);
+            yield return MakeVertex(-30 + position.X, 0 + position.Y, 30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 0 + position.Y, 30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, 30 + position.Z, color);
 
-            yield return MakeVertex(-30, 60, 30);
-            yield return MakeVertex(30, 60, 30);
-            yield return MakeVertex(-30, 0, 30);
+            yield return MakeVertex(-30 + position.X, 60 + position.Y, 30 + position.Z, color);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, 30 + position.Z, color);
+            yield return MakeVertex(-30 + position.X, 0 + position.Y, 30 + position.Z, color);
 
             // Box top
-            yield return MakeVertex(-30, 60, -30, Color.DarkGray);
-            yield return MakeVertex(30, 60, -30, Color.DarkGray);
-            yield return MakeVertex(30, 60, 30, Color.DarkGray);
+            yield return MakeVertex(-30 + position.X, 60 + position.Y, -30 + position.Z, color ?? Color.DarkGray);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, -30 + position.Z, color ?? Color.DarkGray);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, 30 + position.Z, color ?? Color.DarkGray);
 
-            yield return MakeVertex(-30, 60, 30, Color.DarkGray);
-            yield return MakeVertex(30, 60, 30, Color.DarkGray);
-            yield return MakeVertex(-30, 60, -30, Color.DarkGray);
+            yield return MakeVertex(-30 + position.X, 60 + position.Y, 30 + position.Z, color ?? Color.DarkGray);
+            yield return MakeVertex(30 + position.X, 60 + position.Y, 30 + position.Z, color ?? Color.DarkGray);
+            yield return MakeVertex(-30 + position.X, 60 + position.Y, -30 + position.Z, color ?? Color.DarkGray);
         }
 
         /// <summary>

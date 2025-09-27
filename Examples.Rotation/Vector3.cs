@@ -115,7 +115,7 @@ namespace CameraControllerDemo
 
         public override string ToString()
         {
-            return base.ToString(); 
+            return FormattableString.Invariant($"X: {X}, Y: {Y}, Z: {Z}");
         }
     }
 }

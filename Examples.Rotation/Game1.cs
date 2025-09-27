@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using CameraControllerDemo;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -7,8 +6,10 @@ using Vector3Struct = Microsoft.Xna.Framework.Vector3;
 using Vector3 = CameraControllerDemo.Vector3;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using System;
+using System.Diagnostics;
+using CameraControllerDemo.Controllers;
 
-namespace Examples.Rotation
+namespace CameraControllerDemo
 {
     public class Game1 : Game
     {
@@ -17,7 +18,7 @@ namespace Examples.Rotation
         private SpriteBatch _spriteBatch;
 
         private CameraController _cameraController;
-
+        private PlayerController _playerController;
         private Matrix _projectionMatrix;
         private Matrix _viewMatrix;
         private Matrix _worldMatrix;
@@ -34,6 +35,11 @@ namespace Examples.Rotation
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
+           
+            // vsync off
+            _graphics.SynchronizeWithVerticalRetrace = true;
+            _graphics.ApplyChanges();
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -45,9 +51,14 @@ namespace Examples.Rotation
         {
             base.Initialize();
 
+            IsFixedTimeStep = false;
+            //TargetElapsedTime = TimeSpan.FromSeconds(1.0 / 60.0); // 60 FPS
+
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             //_camera = new Camera(new Vector3(0, 16, 4), new Vector3(0, 0, 0));
             _cameraController = new CameraController(new Vector3(0f, 0f, -100f), new Vector3(0f, 0f, 0f));
+            _playerController = new PlayerController(new Vector3(0f, 0f, -100f), new Vector3(0f, 0f, 0f));
+            
             float aspectRatio = GraphicsDevice.DisplayMode.AspectRatio;//16f / 9f;
 
             //_projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
@@ -88,16 +99,29 @@ namespace Examples.Rotation
             _spriteFont = Content.Load<SpriteFont>("baseFont");
         }
 
+        float physicsElapsed = 0;
+        float physicsTimestep = 1f / 60f; // 60 updates per second
+
         /// <summary>
         /// Updates the specified game time.
         /// </summary>
         /// <param name="gameTime">The game time.</param>
         protected override void Update(GameTime gameTime)
         {
-            InputController.Instance.Update(gameTime);
-            _cameraController.Update(gameTime);
+            physicsElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            while (physicsElapsed >= physicsTimestep)
+            {
+                Debug.WriteLine("physicsElapsed " + physicsElapsed + " physicsTimestep " + physicsTimestep);
+                physicsElapsed -= physicsTimestep;
+            }
+            Debug.WriteLine("Player Position: " + _playerController.Position.ToString());
+            Debug.WriteLine("Camera Position: " + _cameraController.Position.ToString());
+            Debug.WriteLine("//////////////////////////////");
 
-            int w = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width; //whole screen
+            InputController.Instance.Update(gameTime);
+            _cameraController.Update(gameTime, _playerController.Position);
+
+            int w = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             int h = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             var r = GraphicsDevice.PresentationParameters.Bounds;
 
@@ -111,66 +135,6 @@ namespace Examples.Rotation
                     //Exit();
                 }
 
-                //Vector3 difference = _camera.Position - _camera.Target;
-                //_camera.CameraRotationMatrix *= Matrix.CreateFromAxisAngle(_camera.Target, MathHelper.ToRadians(1.0f));
-
-                //if (Keyboard.GetState().IsKeyDown(Keys.Left))
-                //{
-                //    _camera.Position.X -= 1f;
-                //    _camera.Target.X -= 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Right))
-                //{
-                //    _camera.Position.X += 1f;
-                //    _camera.Target.X += 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                //{
-                //    _camera.Position.Y -= 1f;
-                //    _camera.Target.Y -= 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                //{
-                //    _camera.Position.Y += 1f;
-                //    _camera.Target.Y += 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.OemPlus))
-                //{
-                //    _camera.Position.Z += 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.OemMinus))
-                //{
-                //    _camera.Position.Z -= 1f;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                //{
-                //    _orbit = !_orbit;
-                //}
-
-                //if (_orbit)
-                //{
-                //    //Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
-                //    ////_camera.Position = Vector3.Transform(_camera.Position, rotationMatrix);
-
-                //    ////Vector3 pos = _camera.Position;
-                //    ////Vector3 dir = (_camera.Position - _camera.Target);
-                //    ////dir.Normalize();
-                //    ////float distance = Vector3.Distance(_camera.Position, _camera.Target);
-
-
-                //    ////Matrix translationMatrix;
-                //    ////if (distance > 200f)
-                //    ////{
-                //    ////    //pos = pos + (dir * -1f);
-                //    ////    translationMatrix = Matrix.CreateTranslation(_camera.Position * -1f);
-
-                //    ////}
-                //    ////else
-                //    ////{
-                //    ////    translationMatrix = Matrix.CreateTranslation(_camera.Position * 1f);
-                //    ////    //pos = pos + (dir * +1f);
-                //    ////}
-
                 //    //// https://stackoverflow.com/questions/42281226/rotation-matrix-causing-sprite-position-to-change
                 //    ////A rotation matrix rotates around 0,0 and your rectangle is already placed in the world.
                 //    ////To solve first subtract the rectangle's center from each vertex (translate the rectangle to be centered at 0,0)
@@ -179,10 +143,6 @@ namespace Examples.Rotation
                 //    ////objectPosition = Vector3.Transform(ObjectPosition - objectToRotateAboutPosition, Matrix.CreateRotationX(angle)) + objectToRotateAboutPosition;
                 //    ////https://gamedev.stackexchange.com/questions/51737/how-to-rotate-one-object-around-another-moving-object-in-3-d
                 //    //_camera.Position = Vector3.Transform(_camera.Position - _camera.Target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + _camera.Target;
-
-                //    _cameraController.Orbit();
-                //}
-
                 _viewMatrix = _cameraController.GetViewMatrix();
             }
             else
@@ -250,9 +210,10 @@ namespace Examples.Rotation
             }
 
             _spriteBatch.Begin();
-            //_spriteBatch.DrawString(_spriteFont, $"Camera z: {_camera.Position.Z}", new Vector2(50, 100), Color.Blue);
-            //_spriteBatch.DrawString(_spriteFont, $"Camera x: {_camera.Position.X}", new Vector2(50, 130), Color.Black);
-            _spriteBatch.DrawString(_spriteFont, $"_viewMatrix: {_viewMatrix.Up} {_viewMatrix.Right} {_viewMatrix.Forward}", new Vector2(50, 160), Color.BlanchedAlmond);
+            _spriteBatch.DrawString(_spriteFont, $"Camera z: {_cameraController.Position.Z}", new Vector2(50, 100), Color.Blue);
+            _spriteBatch.DrawString(_spriteFont, $"Camera x: {_cameraController.Position.X}", new Vector2(50, 130), Color.Black);
+            _spriteBatch.DrawString(_spriteFont, $"Camera y: {_cameraController.Position.Y}", new Vector2(50, 160), Color.DarkGoldenrod);
+            _spriteBatch.DrawString(_spriteFont, $"_viewMatrix: {_viewMatrix.Up} {_viewMatrix.Right} {_viewMatrix.Forward}", new Vector2(50, 190), Color.BlanchedAlmond);
 
             _spriteBatch.End();
 
@@ -318,8 +279,9 @@ namespace Examples.Rotation
         {
             List<VertexPositionColor> triangleVertices = new List<VertexPositionColor>();
             triangleVertices.AddRange(Primitives.MakeFloor());
-            triangleVertices.AddRange(Primitives.MakeBox());
-            triangleVertices.AddRange(Primitives.MakeCameraTarget(_cameraController.Target));
+            triangleVertices.AddRange(Primitives.MakeBox(new Vector3(0, 0, 3), color: Color.DarkGreen));
+            triangleVertices.AddRange(_playerController.GetModel3d);
+            //triangleVertices.AddRange(Primitives.MakeCameraTarget(_cameraController.Target));
 
             VertexBuffer vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), triangleVertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData<VertexPositionColor>(triangleVertices.ToArray());
@@ -413,5 +375,83 @@ namespace Examples.Rotation
             {
             }
         }
+
+
+
+
+        //        Here's a more detailed breakdown:
+        //1. Fixed Physics Update:
+
+        //    Use a fixed timestep: Instead of tying physics updates to the rendering frame rate, update the physics simulation at a fixed interval (e.g., 60 times per second). This ensures a consistent simulation, regardless of how quickly the game is rendering.
+        //    Example: In your Update() method, you can use Time.GetElapsedGameTime() to calculate the time elapsed since the last frame.If this time exceeds your fixed timestep, perform the physics update.You can repeat this process until all accumulated time has been processed.
+        //    Example(C#): 
+
+        //Code
+
+        //    float physicsElapsed = 0;
+        //        float physicsTimestep = 1f / 60f; // 60 updates per second
+
+        //        public override void Update(GameTime gameTime)
+        //        {
+        //            physicsElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
+        //            while (physicsElapsed >= physicsTimestep)
+        //            {
+        //                UpdatePhysics(physicsTimestep);
+        //                physicsElapsed -= physicsTimestep;
+        //            }
+        //            // ... rest of your update logic
+        //        }
+
+        //        void UpdatePhysics(float deltaTime)
+        //        {
+        //            // Your physics update code here, using deltaTime
+        //        }
+
+
+
+
+
+
+        //2. Rendering Interpolation:
+
+        //    Store previous and current states: After each physics update, store the current state of your game objects(position, rotation, etc.). Also, store the state from the previous update.
+        //        Interpolate during rendering: In your Draw() method, calculate the alpha value(a number between 0 and 1) based on the time elapsed since the last physics update.Use this alpha value to linearly interpolate between the previous and current states of your game objects to get their rendered positions.
+        //    Example (C#): 
+
+        //Code
+
+        //    Vector2 previousPosition;
+        //        Vector2 currentPosition;
+
+        //        public override void Draw(GameTime gameTime)
+        //        {
+        //            float alpha = physicsElapsed / physicsTimestep;
+        //            Vector2 interpolatedPosition = Vector2.Lerp(previousPosition, currentPosition, alpha);
+
+        //            // Draw your object at interpolatedPosition
+        //        }
+
+
+
+
+        //3. Benefits of Separation:
+
+        //    Consistent physics:
+        //    The fixed timestep ensures that physics behave the same, regardless of the frame rate.
+        //    Smooth rendering:
+        //    Interpolation creates smooth visual movement, even when the physics updates happen at a different rate.
+        //    Optimization:
+        //    You can adjust the physics update rate and rendering rate independently to optimize performance.
+
+        //4.Additional Considerations:
+
+        //    Collision Detection:
+        //    Collision detection should be done within the fixed timestep updates,using the current and previous states of the objects.
+
+        //Multi-threading:
+        //You can further optimize by moving physics updates to a separate thread, but be careful about synchronization issues.
+
+        //By separating the physics and rendering updates and using interpolation, you can create a more robust and visually appealing game experience in MonoGame.
+
     }
 }

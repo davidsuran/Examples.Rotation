@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using static CameraControllerDemo.KeyBinder;
 
-namespace Examples.Rotation
+namespace CameraControllerDemo.Controllers
 {
     public class InputController : IController
     {
@@ -26,18 +26,14 @@ namespace Examples.Rotation
             private set => _instance = value;
         }
 
-
         public void Update(GameTime gameTime)
         {
             oms = ms;
             ms = Mouse.GetState();
             LeftClicked = ms.LeftButton != ButtonState.Pressed && oms.LeftButton == ButtonState.Pressed;
             // true On left release like Windows buttons
-
-
-            KeyboardState currentKeyboardState = Keyboard.GetState();
-            Keys[] pressedKeys = currentKeyboardState.GetPressedKeys();
-            HandlePressedKeys(pressedKeys);
+            
+            HandlePressedKeys(Keyboard.GetState().GetPressedKeys());
         }
 
         public static bool Hover(Rectangle r)
@@ -60,7 +56,7 @@ namespace Examples.Rotation
 
             float Rescale(int mouse, int min, int max)
             {
-                return a + (((mouse - min) * (b - a)) / (float)(max - min));
+                return a + (mouse - min) * (b - a) / (float)(max - min);
             }
 
             return new Vector2(Rescale(ms.X, xMin, xMax), Rescale(ms.Y, yMin, yMax));
@@ -70,14 +66,8 @@ namespace Examples.Rotation
         {
             foreach (Keys key in keys)
             {
-                KeyBinder.InputEventType inputEventType = KeyBinder.Mapper(key);
-
+                InputEventType inputEventType = Mapper(key);
                 EventDispatcher.Instance.Raise(inputEventType);
-                //EventHandler<EventArgs> eventHandler = _eventsDictionary[inputEventType];
-                //if (eventHandler != null)
-                //{
-                //    eventHandler?.Invoke(inputEventType, null);
-                //}
             }
         }
 
