@@ -79,18 +79,18 @@ namespace CameraControllerDemo.Controllers
 
         private void OnOrbit(GameTime gameTime, Vector3 target)
         {
-            Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
+            //Matrix rotationMatrix = Matrix.CreateRotationY(MathHelper.ToRadians(1f));
             _cameraModel.Position = Vector3.Transform(_cameraModel.Position - target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + target;
         }
 
         public void Update(GameTime gameTime, Vector3 target)
         {
-            target = MoveToTarget(target);
+            MoveToTarget(target);
 
-            if (_orbiting)
-            {
-                OnOrbit(gameTime, target);
-            }
+            //if (_orbiting)
+            //{
+            //    OnOrbit(gameTime, target);
+            //}
         }
 
         internal Vector3 MoveToTarget(Vector3 target)
@@ -103,7 +103,16 @@ namespace CameraControllerDemo.Controllers
 
             //destination += targetPos;
             //Position = destination;
-            _cameraModel.Position = targetPos;
+
+            if (_orbiting)
+            {
+                _cameraModel.Position = Vector3.Transform(_cameraModel.Position - target, Matrix.CreateRotationY(MathHelper.ToRadians(1f))) + target;
+            }
+            else
+            {
+                _cameraModel.Position = targetPos;
+            }
+
             return targetPos;
         }
 
